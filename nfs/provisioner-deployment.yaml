@@ -31,7 +31,7 @@ spec:
             - name: PROVISIONER_NAME
               value: provisioner-nfs-storage
             - name: NFS_SERVER
-              value: 192.168.2.115
+              value: 192.168.124.16
             - name: NFS_PATH  
               value: /opt
       volumes:
