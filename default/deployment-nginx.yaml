@@ -1,0 +1,73 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-nginx
+  labels:
+    app: web
+spec:
+  ports:
+    - port: 80
+      protocol: TCP
+      targetPort: 80
+      nodePort: 30008
+  selector:
+    app: web
+    tier: nginx
+  clusterIP: 10.96.0.3
+  type: LoadBalancer
+  externalIPs:
+    - 192.168.49.2
+#status:
+#  loadBalancer:
+#    ingress:
+#    - ip: 192.168.49.2
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nginx-pv-claim
+  labels:
+    app: web
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-nginx
+  labels:
+    app: web
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: web
+      tier: nginx
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: web
+        tier: nginx
+    spec:
+      containers:
+      - image: nginx:latest
+        name: nginx
+        env:
+        - name: NGINX_PORT
+          value: "80"
+        ports:
+        - containerPort: 80
+          name: nginx
+        volumeMounts:
+        - name: nginx-persistent-storage
+          mountPath: /etc/nginx/templates
+      volumes:
+      - name: nginx-persistent-storage
+        persistentVolumeClaim:
+          claimName: nginx-pv-claim
